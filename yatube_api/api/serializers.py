@@ -2,7 +2,7 @@ from datetime import datetime
 
 from rest_framework import serializers
 
-from ..posts.models import Post, Group, Comment
+from posts.models import Post, Group, Comment
 
 
 class GroupSerializer(serializers.ModelSerializer):
@@ -12,7 +12,7 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(
+    author = serializers.StringRelatedField(
         read_only=True, default=serializers.CurrentUserDefault())
     pub_date = serializers.DateTimeField(
         read_only=True, default=datetime.now())
@@ -25,7 +25,7 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(
+    author = serializers.StringRelatedField(
         read_only=True, default=serializers.CurrentUserDefault())
     created = serializers.DateTimeField(
         read_only=True, default=datetime.now())

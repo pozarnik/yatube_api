@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from datetime import datetime
 
 from .serializers import PostSerializer, GroupSerializer, CommentSerializer
-from ..posts.models import Post, Group, Comment
+from posts.models import Post, Group, Comment
 
 
 class PostViewSet(viewsets.ModelViewSet):
