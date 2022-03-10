@@ -1,8 +1,9 @@
-from rest_framework import viewsets
 from datetime import datetime
 
-from .serializers import PostSerializer, GroupSerializer, CommentSerializer
 from posts.models import Post, Group, Comment
+from rest_framework import viewsets
+
+from .serializers import PostSerializer, GroupSerializer, CommentSerializer
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -14,13 +15,13 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         if serializer.instance.author != self.request.user:
-            raise PermissionError('Изменение чужого контента запрещено!')
+            raise PermissionError('Изменение чужого поста запрещено!')
         super(PostViewSet, self).perform_update(serializer)
 
     def perform_destroy(self, serializer):
         if serializer.instance.author != self.request.user:
-            raise PermissionError('Изменение чужого контента запрещено!')
-        super(PostViewSet, self).perform_update(serializer)
+            raise PermissionError('Удаление чужого поста запрещено!')
+        super(PostViewSet, self).perform_destroy(serializer)
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
@@ -31,13 +32,15 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user, create=datetime.now())
-
     def get_queryset(self):
         post_id = self.kwargs.get("post_id")
         new_queryset = Comment.objects.filter(post=post_id)
         return new_queryset
+
+    def perform_create(self, serializer):
+        post_id = self.kwargs.get("post_id")
+        post = Post.objects.get(id=post_id)
+        serializer.save(author=self.request.user, created=datetime.now(), post=post)
 
     def perform_update(self, serializer):
         if serializer.instance.author != self.request.user:
@@ -46,5 +49,5 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, serializer):
         if serializer.instance.author != self.request.user:
-            raise PermissionError('Изменение чужого контента запрещено!')
-        super(CommentViewSet, self).perform_update(serializer)
+            raise PermissionError('Удаление чужого комментария запрещено!')
+        super(CommentViewSet, self).perform_destroy(serializer)
