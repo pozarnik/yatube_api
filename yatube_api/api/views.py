@@ -2,6 +2,8 @@ from datetime import datetime
 
 from posts.models import Post, Group, Comment
 from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework import status
 
 from .serializers import PostSerializer, GroupSerializer, CommentSerializer
 
@@ -14,13 +16,16 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, pub_date=datetime.now())
 
     def perform_update(self, serializer):
-        if serializer.instance.author != self.request.user:
-            raise PermissionError('Изменение чужого поста запрещено!')
+        post = self.get_object()
+        if post.author != self.request.user:
+            return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
         super(PostViewSet, self).perform_update(serializer)
 
     def perform_destroy(self, serializer):
-        if serializer.instance.author != self.request.user:
-            raise PermissionError('Удаление чужого поста запрещено!')
+        instance = self.get_object()
+        print(instance.author)
+        if instance.author != self.request.user:
+            return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
         super(PostViewSet, self).perform_destroy(serializer)
 
 
@@ -43,11 +48,13 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, created=datetime.now(), post=post)
 
     def perform_update(self, serializer):
-        if serializer.instance.author != self.request.user:
-            raise PermissionError('Изменение чужого контента запрещено!')
+        comment = self.get_object()
+        if comment.author != self.request.user:
+            return Response(status=status.HTTP_403_FORBIDDEN)
         super(CommentViewSet, self).perform_update(serializer)
 
     def perform_destroy(self, serializer):
-        if serializer.instance.author != self.request.user:
-            raise PermissionError('Удаление чужого комментария запрещено!')
+        comment = self.get_object()
+        if comment.author != self.request.user:
+            return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
         super(CommentViewSet, self).perform_destroy(serializer)
